@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://edx99itz.com/sitemap.xml
