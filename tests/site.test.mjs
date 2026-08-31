@@ -82,3 +82,12 @@ test("páginas de exame expõem procedimento e breadcrumb em JSON-LD", () => {
   assert.equal(data["@graph"].some((item) => item["@type"] === "BreadcrumbList"), true);
 });
 
+test("páginas de exame respondem dúvidas frequentes com dados estruturados", () => {
+  const html = read("exames/eletroneuromiografia/index.html");
+  assert.match(html, /<h2>Dúvidas frequentes<\/h2>/);
+  assert.match(html, /O que a eletroneuromiografia avalia\?/i);
+  const json = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? "{}";
+  const data = JSON.parse(json);
+  assert.equal(data["@graph"].some((item) => item["@type"] === "FAQPage"), true);
+});
+

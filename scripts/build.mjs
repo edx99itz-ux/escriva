@@ -88,6 +88,13 @@ pages.set("/", layout({
 pages.set("/exames/", layout({ title: "Exames de Neurofisiologia em Imperatriz | EDX99 ITZ", description: "Conheça exames neurofisiológicos, indicações gerais e orientações de preparo em Imperatriz-MA.", path: "/exames/", body: `<main><section class="page-intro"><p class="eyebrow">Exames neurofisiológicos</p><h1>Entenda o exame antes do atendimento</h1><p class="lead">Selecione o exame solicitado para conhecer sua finalidade geral e orientações iniciais. Confirme a disponibilidade ao agendar.</p></section><section class="section"><div class="grid">${cards}</div></section></main>` }));
 
 for (const exam of exams) {
+  const examNameLower = exam.name.toLocaleLowerCase("pt-BR");
+  const article = exam.slug === "eletroneuromiografia" ? "a" : exam.slug === "potenciais-evocados" ? "os" : "o";
+  const faqs = [
+    { question: `O que ${article} ${examNameLower} avalia?`, answer: exam.summary },
+    { question: "Quando esse exame pode ser solicitado?", answer: exam.indications },
+    { question: `Como me preparar para o exame de ${examNameLower}?`, answer: exam.preparation }
+  ];
   pages.set(`/exames/${exam.slug}/`, layout({
     title: `${exam.name} em Imperatriz | EDX99 ITZ`,
     description: `${exam.summary} Saiba como funciona e veja orientações de preparo em Imperatriz-MA.`,
@@ -98,9 +105,13 @@ for (const exam of exams) {
         { "@type": "ListItem", position: 1, name: "Início", item: url("/") },
         { "@type": "ListItem", position: 2, name: "Exames", item: url("/exames/") },
         { "@type": "ListItem", position: 3, name: exam.name, item: url(`/exames/${exam.slug}/`) }
-      ] }
+      ] },
+      { "@type": "FAQPage", mainEntity: faqs.map((faq) => ({
+        "@type": "Question", name: faq.question,
+        acceptedAnswer: { "@type": "Answer", text: faq.answer }
+      })) }
     ] }),
-    body: `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Início</a><span>›</span><a href="/exames/">Exames</a><span>›</span><span>${exam.name}</span></nav><section class="page-intro exam"><p class="eyebrow">${exam.short} · Imperatriz-MA</p><h1>${exam.name}</h1><p class="lead">${exam.summary}</p></section><section class="article"><div><h2>Quando pode ser solicitado?</h2><p>${exam.indications}</p><h2>Como se preparar</h2><p>${exam.preparation}</p><h2>O que levar</h2><ul><li>Pedido médico</li><li>Documento de identificação</li><li>Exames e laudos anteriores relacionados</li></ul></div><aside class="info-box"><h2>Antes de se deslocar</h2><p>Confirme a modalidade exata, a disponibilidade, o preparo e os documentos necessários.</p><a class="button" href="/contato/">Ver informações de contato</a></aside></section></main>`
+    body: `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Início</a><span>›</span><a href="/exames/">Exames</a><span>›</span><span>${exam.name}</span></nav><section class="page-intro exam"><p class="eyebrow">${exam.short} · Imperatriz-MA</p><h1>${exam.name}</h1><p class="lead">${exam.summary}</p></section><section class="article"><div><h2>Quando pode ser solicitado?</h2><p>${exam.indications}</p><h2>Como se preparar</h2><p>${exam.preparation}</p><h2>O que levar</h2><ul><li>Pedido médico</li><li>Documento de identificação</li><li>Exames e laudos anteriores relacionados</li></ul></div><aside class="info-box"><h2>Antes de se deslocar</h2><p>Confirme a modalidade exata, a disponibilidade, o preparo e os documentos necessários.</p><a class="button" href="/contato/">Ver informações de contato</a></aside></section><section class="faq"><p class="eyebrow">Informação ao paciente</p><h2>Dúvidas frequentes</h2>${faqs.map((faq) => `<details><summary>${faq.question}</summary><p>${faq.answer}</p></details>`).join("")}<p class="faq-note">As respostas são gerais. O pedido e as orientações do profissional responsável pelo atendimento devem ser considerados para cada caso.</p></section></main>`
   }));
 }
 
