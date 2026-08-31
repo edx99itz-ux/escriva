@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 const root = new URL("..", import.meta.url).pathname.replace(/^\/(.:)/, "$1");
 const out = join(root, "dist");
 const origin = "https://edx99itz.com";
+const basePath = (process.env.PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 
 const exams = [
   {
@@ -62,7 +63,7 @@ const schema = (extra = {}) => JSON.stringify({
 
 function layout({ title, description, path, body, jsonLd = schema() }) {
   const canonical = url(path);
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="pt-BR"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}">
@@ -71,6 +72,7 @@ function layout({ title, description, path, body, jsonLd = schema() }) {
   <meta name="twitter:card" content="summary"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/site.css">
   <script type="application/ld+json">${jsonLd}</script>
 </head><body><header>${nav}</header>${body}<footer><div><strong>EDX99 ITZ</strong><p>Informação clara sobre exames de neurofisiologia clínica em Imperatriz e região.</p></div><div><p>Conteúdo informativo. Não substitui consulta ou orientação médica.</p><a href="/contato/">Informações de atendimento</a></div></footer></body></html>`;
+  return basePath ? html.replaceAll('href="/', `href="${basePath}/`) : html;
 }
 
 const cards = exams.map((exam) => `<article class="card"><span class="eyebrow">${exam.short}</span><h3>${exam.name}</h3><p>${exam.summary}</p><a class="text-link" href="/exames/${exam.slug}/">Entenda o exame <span aria-hidden="true">→</span></a></article>`).join("");
@@ -118,7 +120,8 @@ for (const [route, html] of pages) {
 cpSync(join(root, "src", "assets"), join(out, "assets"), { recursive: true });
 writeFileSync(join(out, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(join(out, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${routes.map((route) => `<url><loc>${url(route)}</loc></url>`).join("")}</urlset>`);
-writeFileSync(join(out, "manifest.webmanifest"), JSON.stringify({ name: "EDX99 ITZ — Neurofisiologia Clínica", short_name: "EDX99 ITZ", lang: "pt-BR", start_url: "/", display: "standalone", background_color: "#ffffff", theme_color: "#0b3142" }));
+writeFileSync(join(out, "manifest.webmanifest"), JSON.stringify({ name: "EDX99 ITZ — Neurofisiologia Clínica", short_name: "EDX99 ITZ", lang: "pt-BR", start_url: `${basePath}/`, display: "standalone", background_color: "#ffffff", theme_color: "#0b3142" }));
 writeFileSync(join(out, "404.html"), layout({ title: "Página não encontrada | EDX99 ITZ", description: "A página solicitada não foi encontrada.", path: "/404", body: `<main><section class="page-intro"><p class="eyebrow">Erro 404</p><h1>Página não encontrada</h1><p class="lead">Use a navegação para encontrar exames e informações de atendimento.</p><a class="button" href="/">Voltar ao início</a></section></main>` }));
 
 console.log(`Built ${pages.size} pages in ${out}`);
+

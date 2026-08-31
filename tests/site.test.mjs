@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../dist/${path}`, import.meta.url), "utf8");
+const basePath = (process.env.PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 
 test("gera as páginas essenciais para descoberta local", () => {
   for (const path of [
@@ -35,10 +36,17 @@ test("não publica alegações médicas impróprias", () => {
 
 test("expõe manifesto e identidade de aplicação", () => {
   const home = read("index.html");
-  assert.match(home, /rel="manifest" href="\/manifest\.webmanifest"/);
+  assert.match(home, new RegExp(`rel="manifest" href="${basePath}/manifest\\.webmanifest"`));
   const manifest = JSON.parse(read("manifest.webmanifest"));
   assert.equal(manifest.lang, "pt-BR");
-  assert.equal(manifest.start_url, "/");
+  assert.equal(manifest.start_url, `${basePath}/`);
+});
+
+test("preserva o domínio canônico e aplica o caminho do GitHub Pages", () => {
+  const home = read("index.html");
+  assert.match(home, /rel="canonical" href="https:\/\/edx99itz\.com\/"/);
+  assert.match(home, new RegExp(`href="${basePath}/assets/site\\.css"`));
+  assert.match(home, new RegExp(`href="${basePath}/exames/"`));
 });
 
 test("todos os links internos apontam para páginas geradas", () => {
@@ -49,8 +57,9 @@ test("todos os links internos apontam para páginas geradas", () => {
   for (const file of files) {
     const html = read(file);
     for (const [, href] of html.matchAll(/href="(\/[^"]*)"/g)) {
-      if (href.startsWith("/assets/") || href === "/manifest.webmanifest") continue;
-      const target = href === "/" ? "index.html" : `${href.replace(/^\//, "")}index.html`;
+      const normalized = basePath && href.startsWith(`${basePath}/`) ? href.slice(basePath.length) : href;
+      if (normalized.startsWith("/assets/") || normalized === "/manifest.webmanifest") continue;
+      const target = normalized === "/" ? "index.html" : `${normalized.replace(/^\//, "")}index.html`;
       assert.equal(existsSync(new URL(`../dist/${target}`, import.meta.url)), true, `${file} -> ${href}`);
     }
   }
@@ -63,3 +72,4 @@ test("páginas de exame expõem procedimento e breadcrumb em JSON-LD", () => {
   assert.equal(data["@graph"].some((item) => item["@type"] === "MedicalProcedure"), true);
   assert.equal(data["@graph"].some((item) => item["@type"] === "BreadcrumbList"), true);
 });
+
