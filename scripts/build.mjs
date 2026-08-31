@@ -68,8 +68,8 @@ function layout({ title, description, path, body, jsonLd = schema() }) {
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}">
   <link rel="canonical" href="${canonical}"><meta name="theme-color" content="#0b3142">
-  <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}">
-  <meta name="twitter:card" content="summary"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/site.css">
+  <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="${origin}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${origin}/og.png"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/assets/site.css">
   <script type="application/ld+json">${jsonLd}</script>
 </head><body><header>${nav}</header>${body}<footer><div><strong>EDX99 ITZ</strong><p>Informação clara sobre exames de neurofisiologia clínica em Imperatriz e região.</p></div><div><p>Conteúdo informativo. Não substitui consulta ou orientação médica.</p><a href="/contato/">Informações de atendimento</a></div></footer></body></html>`;
   return basePath ? html.replaceAll('href="/', `href="${basePath}/`) : html;
@@ -118,6 +118,8 @@ for (const [route, html] of pages) {
   writeFileSync(file, html);
 }
 cpSync(join(root, "src", "assets"), join(out, "assets"), { recursive: true });
+cpSync(join(root, "src", "favicon.svg"), join(out, "favicon.svg"));
+cpSync(join(root, "src", "og.png"), join(out, "og.png"));
 writeFileSync(join(out, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(join(out, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${routes.map((route) => `<url><loc>${url(route)}</loc></url>`).join("")}</urlset>`);
 writeFileSync(join(out, "manifest.webmanifest"), JSON.stringify({ name: "EDX99 ITZ — Neurofisiologia Clínica", short_name: "EDX99 ITZ", lang: "pt-BR", start_url: `${basePath}/`, display: "standalone", background_color: "#ffffff", theme_color: "#0b3142" }));

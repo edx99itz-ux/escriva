@@ -49,6 +49,15 @@ test("preserva o domínio canônico e aplica o caminho do GitHub Pages", () => {
   assert.match(home, new RegExp(`href="${basePath}/exames/"`));
 });
 
+test("oferece imagem social e ícone próprios em todas as páginas", () => {
+  const home = read("index.html");
+  assert.match(home, /property="og:image" content="https:\/\/edx99itz\.com\/og\.png"/);
+  assert.match(home, /name="twitter:card" content="summary_large_image"/);
+  assert.match(home, new RegExp(`rel="icon" href="${basePath}/favicon\\.svg"`));
+  assert.equal(existsSync(new URL("../dist/og.png", import.meta.url)), true);
+  assert.equal(existsSync(new URL("../dist/favicon.svg", import.meta.url)), true);
+});
+
 test("todos os links internos apontam para páginas geradas", () => {
   const files = [
     "index.html", "exames/index.html", "profissional/index.html",
@@ -58,7 +67,7 @@ test("todos os links internos apontam para páginas geradas", () => {
     const html = read(file);
     for (const [, href] of html.matchAll(/href="(\/[^"]*)"/g)) {
       const normalized = basePath && href.startsWith(`${basePath}/`) ? href.slice(basePath.length) : href;
-      if (normalized.startsWith("/assets/") || normalized === "/manifest.webmanifest") continue;
+      if (normalized.startsWith("/assets/") || normalized === "/manifest.webmanifest" || normalized === "/favicon.svg") continue;
       const target = normalized === "/" ? "index.html" : `${normalized.replace(/^\//, "")}index.html`;
       assert.equal(existsSync(new URL(`../dist/${target}`, import.meta.url)), true, `${file} -> ${href}`);
     }
